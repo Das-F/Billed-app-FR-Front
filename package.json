@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test": "jest --coverage --noStackTrace --silent"
+    "test": "jest --coverage --noStackTrace --silent",
+    "dev": "live-server"
   },
   "jest": {
     "verbose": false,
@@ -21,6 +22,7 @@
     "express": "^4.17.1",
     "global": "^4.4.0",
     "jquery": "^3.5.1",
+    "live-server": "^1.2.2",
     "path": "^0.12.7"
   },
   "devDependencies": {
