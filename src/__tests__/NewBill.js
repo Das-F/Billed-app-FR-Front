@@ -6,8 +6,9 @@ import { screen, waitFor } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import BillsUI from "../views/BillsUI.js";
 import Bills from "../containers/Bills.js";
+import NewBill from "../containers/NewBill.js";
 import NewBillUI from "../views/NewBillUI.js";
-import { ROUTES } from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store.js";
 
@@ -106,6 +107,52 @@ describe("Given I am connected as an employee", () => {
       await waitFor(() => expect(createSpy).toHaveBeenCalled());
 
       createSpy.mockRestore();
+    });
+  });
+
+  describe("When I submit the new bill form with a valid file and fields", () => {
+    test("Then the form should be submitted and the bill created", async () => {
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem("user", JSON.stringify({ email: "a@a", type: "Employee" }));
+
+      const html = NewBillUI();
+      document.body.innerHTML = html;
+
+      const onNavigate = jest.fn();
+      const store = mockStore;
+
+      // Spy update and create
+      const updateSpy = jest.spyOn(store.bills(), "update");
+      const createSpy = jest.spyOn(store.bills(), "create");
+
+      // instantiate NewBill container
+      new NewBill({ document, onNavigate, store, localStorage: window.localStorage });
+
+      // upload a valid file first (png)
+      const fileInput = screen.getByTestId("file");
+      const file = new File(["dummy content"], "receipt.png", { type: "image/png" });
+      userEvent.upload(fileInput, file);
+
+      // wait for create to be called by handleChangeFile
+      await waitFor(() => expect(createSpy).toHaveBeenCalled());
+
+      // fill remaining fields
+      userEvent.type(screen.getByTestId("expense-name"), "Repas client");
+      screen.getByTestId("datepicker").value = "2023-12-01";
+      screen.getByTestId("amount").value = "150";
+      screen.getByTestId("pct").value = "20";
+
+      const submitBtn = screen.getByText("Envoyer");
+      userEvent.click(submitBtn);
+
+      // onNavigate should have been called to go back to Bills
+      expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH.Bills);
+
+      // update should be called to save the bill
+      await waitFor(() => expect(updateSpy).toHaveBeenCalled());
+
+      createSpy.mockRestore();
+      updateSpy.mockRestore();
     });
   });
 });
