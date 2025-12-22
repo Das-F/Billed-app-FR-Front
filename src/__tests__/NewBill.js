@@ -2,13 +2,14 @@
  * @jest-environment jsdom
  */
 
-import { screen } from "@testing-library/dom";
+import { screen, waitFor } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import BillsUI from "../views/BillsUI.js";
 import Bills from "../containers/Bills.js";
 import NewBillUI from "../views/NewBillUI.js";
 import { ROUTES } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
+import mockStore from "../__mocks__/store.js";
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
@@ -75,6 +76,36 @@ describe("Given I am connected as an employee", () => {
       userEvent.click(submitBtn);
       // onNavigate should not have been called because submission is prevented
       expect(onNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("When a file is selected in the file input", () => {
+    test("Then handleChangeFile should be called when a file is selected", async () => {
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem("user", JSON.stringify({ email: "a@a", type: "Employee" }));
+
+      const html = NewBillUI();
+      document.body.innerHTML = html;
+
+      const onNavigate = jest.fn();
+
+      const store = mockStore;
+
+      // spy on store.create to assert it is called by handleChangeFile
+      const createSpy = jest.spyOn(store.bills(), "create");
+
+      // instantiate NewBill container (this binds the change handler)
+      new (require("../containers/NewBill.js").default)({ document, onNavigate, store, localStorage: window.localStorage });
+
+      const fileInput = screen.getByTestId("file");
+      const file = new File(["dummy content"], "test.png", { type: "image/png" });
+
+      // userEvent.upload will set the files and fire the change event
+      userEvent.upload(fileInput, file);
+
+      await waitFor(() => expect(createSpy).toHaveBeenCalled());
+
+      createSpy.mockRestore();
     });
   });
 });
