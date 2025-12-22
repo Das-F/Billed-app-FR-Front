@@ -43,4 +43,38 @@ describe("Given I am connected as an employee", () => {
       expect(screen.getByTestId("form-new-bill")).toBeTruthy();
     });
   });
+
+  describe("When I try to submit a new bill without a justificatif (file)", () => {
+    test("Then submission should be prevented and form invalid", () => {
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
+      const html = NewBillUI();
+      document.body.innerHTML = html;
+      const onNavigate = jest.fn();
+      // instantiate container to bind submit handler
+      new Bills({ document, onNavigate, store: null, localStorage: window.localStorage });
+      // fill other required fields except the file input
+      const expenseName = screen.getByTestId("expense-name");
+      const datepicker = screen.getByTestId("datepicker");
+      const amount = screen.getByTestId("amount");
+      const pct = screen.getByTestId("pct");
+      userEvent.type(expenseName, "Repas client");
+      // date input: set value directly
+      datepicker.value = "2023-12-01";
+      amount.value = "100";
+      pct.value = "20";
+      const form = screen.getByTestId("form-new-bill");
+      const submitBtn = screen.getByText("Envoyer");
+      // the file input is required in the UI
+      const fileInput = screen.getByTestId("file");
+      expect(fileInput).toBeTruthy();
+      expect(fileInput.required).toBeTruthy();
+      // form validity should be false because file is missing
+      expect(form.checkValidity()).toBe(false);
+      // Try to submit
+      userEvent.click(submitBtn);
+      // onNavigate should not have been called because submission is prevented
+      expect(onNavigate).not.toHaveBeenCalled();
+    });
+  });
 });
