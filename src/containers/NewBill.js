@@ -23,7 +23,7 @@ export default class NewBill {
 
     if (!file) return;
 
-    // 🔒 Vérification de l'extension
+    // Vérification de l'extension
     const allowedExtensions = ["jpg", "jpeg", "png"];
     const fileName = file.name;
     const fileExtension = fileName.split(".").pop().toLowerCase();
