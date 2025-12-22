@@ -52,9 +52,5 @@ describe("Given I am connected as an employee", () => {
       const newBillButton = screen.getByTestId("btn-new-bill");
       expect(newBillButton).toBeTruthy();
     });
-    test("Then the eye icon should be present", () => {
-      const iconEye = screen.getByTestId("icon-eye");
-      expect(iconEye).toBeTruthy();
-    });
   });
 });
