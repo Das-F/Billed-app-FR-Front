@@ -8,6 +8,9 @@ import { bills } from "../fixtures/bills.js";
 import { ROUTES_PATH } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 
+import mockStore from "../__mocks__/store";
+
+jest.mock("../app/store", () => mockStore);
 import router from "../app/Router.js";
 
 describe("Given I am connected as an employee", () => {
@@ -54,6 +57,41 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills);
       const newBillButton = screen.getByTestId("btn-new-bill");
       expect(newBillButton).toBeTruthy();
+    });
+  });
+
+  // Test d'intégration: simuler une erreur 404 renvoyée par l'API et vérifier l'affichage
+  describe("When an error occurs on API for Bills page", () => {
+    beforeEach(() => {
+      jest.spyOn(mockStore, "bills");
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+          email: "a@a",
+        })
+      );
+      const root = document.createElement("div");
+      root.setAttribute("id", "root");
+      document.body.appendChild(root);
+      router();
+    });
+
+    // Type de test: Intégration — mock du store pour rejeter avec Error("Erreur 404") et vérification UI
+    test("Then the Bills page should display error 404 when API fails", async () => {
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error("Erreur 404"));
+          },
+        };
+      });
+
+      window.onNavigate(ROUTES_PATH.Bills);
+      await new Promise(process.nextTick);
+      const message = await screen.getByText(/Erreur 404/);
+      expect(message).toBeTruthy();
     });
   });
 });
