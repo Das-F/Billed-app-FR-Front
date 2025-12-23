@@ -69,29 +69,29 @@ describe("Given I am connected as an employee", () => {
           email: "a@a",
         })
       );
-      // Render NewBill UI directly and instantiate container (avoids router timing)
+      // Rendu direct de l'UI NewBill et initialisation du container (évite les problèmes de synchronisation du router)
       const NewBillUI = require("../views/NewBillUI.js").default;
       const NewBill = require("../containers/NewBill.js").default;
       document.body.innerHTML = NewBillUI();
 
       const store = mockStore;
 
-      // spies on store methods
+      // espionne les méthodes du store
       const createSpy = jest.spyOn(store.bills(), "create");
       const updateSpy = jest.spyOn(store.bills(), "update");
 
-      // instantiate NewBill container to bind handlers
+      // initialise le container NewBill pour lier les gestionnaires
       const onNavigate = jest.fn();
       new NewBill({ document, onNavigate, store, localStorage: window.localStorage });
 
-      // simulate file upload
+      // simule l'upload d'un fichier
       const fileInput = screen.getByTestId("file");
       const file = new File(["dummy content"], "test.png", { type: "image/png" });
       fireEvent.change(fileInput, { target: { files: [file] } });
 
       await waitFor(() => expect(createSpy).toHaveBeenCalled());
 
-      // fill form and submit
+      // remplis le formulaire et soumets-le
       fireEvent.change(screen.getByTestId("expense-name"), { target: { value: "ticket" } });
       fireEvent.change(screen.getByTestId("amount"), { target: { value: "50" } });
       fireEvent.change(screen.getByTestId("datepicker"), { target: { value: "2021-01-01" } });

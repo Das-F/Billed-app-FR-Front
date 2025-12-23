@@ -35,7 +35,7 @@ describe("Given I am connected as an employee", () => {
       const root = document.createElement("div");
       root.setAttribute("id", "root");
       document.body.append(root);
-      // Render Bills UI and instantiate the container which binds the click handler
+      // Rendu de Bills UI et initialisation du container qui lie le gestionnaire de clic
       document.body.innerHTML = BillsUI({ data: [] });
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
@@ -56,29 +56,29 @@ describe("Given I am connected as an employee", () => {
       const html = NewBillUI();
       document.body.innerHTML = html;
       const onNavigate = jest.fn();
-      // instantiate container to bind submit handler
+      // initialise le container pour lier le gestionnaire de soumission
       new Bills({ document, onNavigate, store: null, localStorage: window.localStorage });
-      // fill other required fields except the file input
+      // remplir les autres champs requis sauf le champ fichier
       const expenseName = screen.getByTestId("expense-name");
       const datepicker = screen.getByTestId("datepicker");
       const amount = screen.getByTestId("amount");
       const pct = screen.getByTestId("pct");
       userEvent.type(expenseName, "Repas client");
-      // date input: set value directly
+      // champ date : définir la valeur directement
       datepicker.value = "2023-12-01";
       amount.value = "100";
       pct.value = "20";
       const form = screen.getByTestId("form-new-bill");
       const submitBtn = screen.getByText("Envoyer");
-      // the file input is required in the UI
+      // le champ fichier est requis dans l'UI
       const fileInput = screen.getByTestId("file");
       expect(fileInput).toBeTruthy();
       expect(fileInput.required).toBeTruthy();
-      // form validity should be false because file is missing
+      // la validité du formulaire doit être false car le fichier manque
       expect(form.checkValidity()).toBe(false);
-      // Try to submit
+      // Essayer de soumettre
       userEvent.click(submitBtn);
-      // onNavigate should not have been called because submission is prevented
+      // onNavigate ne doit pas avoir été appelé car la soumission est empêchée
       expect(onNavigate).not.toHaveBeenCalled();
     });
   });
@@ -96,16 +96,16 @@ describe("Given I am connected as an employee", () => {
 
       const store = mockStore;
 
-      // spy on store.create to assert it is called by handleChangeFile
+      // espionner store.create pour vérifier qu'il est appelé par handleChangeFile
       const createSpy = jest.spyOn(store.bills(), "create");
 
-      // instantiate NewBill container (this binds the change handler)
+      // initialiser le container NewBill (cela lie le gestionnaire de changement)
       new (require("../containers/NewBill.js").default)({ document, onNavigate, store, localStorage: window.localStorage });
 
       const fileInput = screen.getByTestId("file");
       const file = new File(["dummy content"], "test.png", { type: "image/png" });
 
-      // userEvent.upload will set the files and fire the change event
+      // userEvent.upload définira les fichiers et déclenchera l'événement change
       userEvent.upload(fileInput, file);
 
       await waitFor(() => expect(createSpy).toHaveBeenCalled());
@@ -126,19 +126,19 @@ describe("Given I am connected as an employee", () => {
       const onNavigate = jest.fn();
       const store = mockStore;
 
-      // Spy update and create
+      // Espionner update et create
       const updateSpy = jest.spyOn(store.bills(), "update");
       const createSpy = jest.spyOn(store.bills(), "create");
 
-      // instantiate NewBill container
+      // initialiser le container NewBill
       new NewBill({ document, onNavigate, store, localStorage: window.localStorage });
 
-      // upload a valid file first (png)
+      // uploader d'abord un fichier valide (png)
       const fileInput = screen.getByTestId("file");
       const file = new File(["dummy content"], "receipt.png", { type: "image/png" });
       userEvent.upload(fileInput, file);
 
-      // wait for create to be called by handleChangeFile
+      // attendre que create soit appelé par handleChangeFile
       await waitFor(() => expect(createSpy).toHaveBeenCalled());
 
       // fill remaining fields

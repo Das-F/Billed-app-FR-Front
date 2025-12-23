@@ -44,8 +44,8 @@ export default class {
                   status: formatStatus(doc.status),
                 };
               } catch (e) {
-                // if for some reason, corrupted data was introduced, we manage here failing formatDate function
-                // log the error and return unformatted date in that case
+                // si pour une raison quelconque des données corrompues sont présentes, on gère ici l'échec de formatDate
+                // journalise l'erreur et retourne la date non formatée dans ce cas
                 console.log(e, "for", doc);
                 return {
                   ...doc,
