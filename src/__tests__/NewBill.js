@@ -14,6 +14,7 @@ import mockStore from "../__mocks__/store.js";
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
+    // Type de test: Unitaire — teste le rendu de la vue `NewBillUI()` isolée (DOM uniquement)
     test("Then the NewBill form should be rendered", () => {
       const html = NewBillUI();
       document.body.innerHTML = html;
@@ -22,6 +23,7 @@ describe("Given I am connected as an employee", () => {
     });
   });
   describe("When I click on 'Nouvelle note de frais' button from Bills page", () => {
+    // Type de test: Intégration — interaction entre `BillsUI`, le container `Bills` et la navigation
     test("Then the NewBill form should be displayed", () => {
       Object.defineProperty(window, "localStorage", { value: localStorageMock });
       window.localStorage.setItem(
@@ -47,6 +49,7 @@ describe("Given I am connected as an employee", () => {
   });
 
   describe("When I try to submit a new bill without a justificatif (file)", () => {
+    // Type de test: Unitaire — vérifie la validation du formulaire côté client sans appel au store
     test("Then submission should be prevented and form invalid", () => {
       Object.defineProperty(window, "localStorage", { value: localStorageMock });
       window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
@@ -81,6 +84,7 @@ describe("Given I am connected as an employee", () => {
   });
 
   describe("When a file is selected in the file input", () => {
+    // Type de test: Intégration — vérifie que `NewBill` appelle `store.bills().create` (container ↔ store)
     test("Then handleChangeFile should be called when a file is selected", async () => {
       Object.defineProperty(window, "localStorage", { value: localStorageMock });
       window.localStorage.setItem("user", JSON.stringify({ email: "a@a", type: "Employee" }));
@@ -111,6 +115,7 @@ describe("Given I am connected as an employee", () => {
   });
 
   describe("When I submit the new bill form with a valid file and fields", () => {
+    // Type de test: Intégration — teste le flux complet (upload → create → update → navigation)
     test("Then the form should be submitted and the bill created", async () => {
       Object.defineProperty(window, "localStorage", { value: localStorageMock });
       window.localStorage.setItem("user", JSON.stringify({ email: "a@a", type: "Employee" }));
