@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { screen, waitFor } from "@testing-library/dom";
+import { screen, waitFor, fireEvent } from "@testing-library/dom";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
 import { ROUTES_PATH } from "../constants/routes.js";
@@ -57,6 +57,52 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills);
       const newBillButton = screen.getByTestId("btn-new-bill");
       expect(newBillButton).toBeTruthy();
+    });
+
+    // Intégration: soumission d'une nouvelle note de frais (fichier + fields)
+    test("Then I can create a new bill via the NewBill form", async () => {
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+          email: "a@a",
+        })
+      );
+      // Render NewBill UI directly and instantiate container (avoids router timing)
+      const NewBillUI = require("../views/NewBillUI.js").default;
+      const NewBill = require("../containers/NewBill.js").default;
+      document.body.innerHTML = NewBillUI();
+
+      const store = mockStore;
+
+      // spies on store methods
+      const createSpy = jest.spyOn(store.bills(), "create");
+      const updateSpy = jest.spyOn(store.bills(), "update");
+
+      // instantiate NewBill container to bind handlers
+      const onNavigate = jest.fn();
+      new NewBill({ document, onNavigate, store, localStorage: window.localStorage });
+
+      // simulate file upload
+      const fileInput = screen.getByTestId("file");
+      const file = new File(["dummy content"], "test.png", { type: "image/png" });
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await waitFor(() => expect(createSpy).toHaveBeenCalled());
+
+      // fill form and submit
+      fireEvent.change(screen.getByTestId("expense-name"), { target: { value: "ticket" } });
+      fireEvent.change(screen.getByTestId("amount"), { target: { value: "50" } });
+      fireEvent.change(screen.getByTestId("datepicker"), { target: { value: "2021-01-01" } });
+      fireEvent.change(screen.getByTestId("pct"), { target: { value: "20" } });
+
+      const submitBtn = screen.getByText("Envoyer");
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => expect(updateSpy).toHaveBeenCalled());
+
+      expect(createSpy.mock.results[0].value).resolves.toHaveProperty("fileUrl");
     });
   });
 
