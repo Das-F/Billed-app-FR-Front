@@ -160,4 +160,51 @@ describe("Given I am connected as an employee", () => {
       updateSpy.mockRestore();
     });
   });
+
+  describe("When the API responds to POST with success", () => {
+    // Test d'intégration : simule l'appel POST via le mock `store` et vérifie
+    // que la navigation se fait bien vers la page Bills après soumission.
+    test("Then a POST is made and navigation goes to Bills page", async () => {
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem("user", JSON.stringify({ email: "a@a", type: "Employee" }));
+
+      const html = NewBillUI();
+      document.body.innerHTML = html;
+
+      const onNavigate = jest.fn((pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      });
+
+      const store = mockStore;
+
+      // espionner la méthode create du mock store (POST)
+      const createSpy = jest.spyOn(store.bills(), "create");
+
+      // initialiser le container NewBill
+      new NewBill({ document, onNavigate, store, localStorage: window.localStorage });
+
+      // remplir les champs requis
+      userEvent.type(screen.getByTestId("expense-name"), "Test POST");
+      screen.getByTestId("datepicker").value = "2023-12-01";
+      screen.getByTestId("amount").value = "42";
+      screen.getByTestId("pct").value = "20";
+
+      // uploader un fichier valide
+      const fileInput = screen.getByTestId("file");
+      const file = new File(["dummy content"], "test-post.png", { type: "image/png" });
+      userEvent.upload(fileInput, file);
+
+      // attendre que la création (upload) ait été appelée
+      await waitFor(() => expect(createSpy).toHaveBeenCalled());
+
+      // soumettre le formulaire
+      const submitBtn = screen.getByText("Envoyer");
+      userEvent.click(submitBtn);
+
+      // la navigation doit se produire vers la page Bills
+      await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH.Bills));
+
+      createSpy.mockRestore();
+    });
+  });
 });
